@@ -5,7 +5,7 @@
 #include "RingBuffer.h"
 #include "MemoryPool.h"
 #include"lib\Library.h"
-#define testMax 100000
+#define ThreadMAX 2
 
 
 struct test
@@ -18,10 +18,30 @@ CMemoryPool<test> LockPool (0);
 CMemoryPool_LF<test> LFPool (0);
 CMemoryPool_TLS<test> TLSPool (0);
 
+unsigned int WINAPI WorkerThread (LPVOID lpParam);
+
+HANDLE Thread[ThreadMAX];
+
 int main()
 {
-	int Cnt=0;
-	test *p[testMax];
+	for ( int Cnt = 0; Cnt < ThreadMAX; Cnt++ )
+	{
+		Thread[Cnt] = ( HANDLE )_beginthreadex (NULL, 0, WorkerThread, NULL, NULL, NULL);
+	}
+
+	WaitForMultipleObjects (ThreadMAX, Thread, TRUE, INFINITE);
+	PROFILE_KEYPROC ();
+
+    return 0;
+}
+
+
+unsigned int WINAPI WorkerThread (LPVOID lpParam)
+{
+	int Cnt = 0;
+	int testMax = 100000;
+
+	test *p[100000];
 
 	for ( int Num = 0; Num < 10; Num++ )
 	{
@@ -32,60 +52,61 @@ int main()
 
 
 		//new delete
-		PROFILE_BEGIN (L"new");
+
 		for ( Cnt = 0; Cnt < testMax; Cnt++ )
 		{
-
+			PROFILE_BEGIN (L"new");
 			p[Cnt] = new test;
+			PROFILE_END (L"new");
 
 		}
-		PROFILE_END (L"new");
 
-		PROFILE_BEGIN (L"delete");
+
+
 		for ( Cnt = 0; Cnt < testMax; Cnt++ )
 		{
-
+			PROFILE_BEGIN (L"delete");
 			delete p[Cnt];
-
+			PROFILE_END (L"delete");
 		}
-		PROFILE_END (L"delete");
+
 
 		//malloc free
-		PROFILE_BEGIN (L"malloc");
+
 		for ( Cnt = 0; Cnt < testMax; Cnt++ )
 		{
-
+			PROFILE_BEGIN (L"malloc");
 			p[Cnt] = ( test * )malloc (sizeof (test));
-
+			PROFILE_END (L"malloc");
 		}
-		PROFILE_END (L"malloc");
 
-		PROFILE_BEGIN (L"free");
+
+
 		for ( Cnt = 0; Cnt < testMax; Cnt++ )
 		{
+			PROFILE_BEGIN (L"free");
 			free (p[Cnt]);
-
+			PROFILE_END (L"free");
 		}
-		PROFILE_END (L"free");
+
 
 		//LockPool Alloc Free
-		PROFILE_BEGIN (L"LOCKPool Alloc ");
+
 		for ( Cnt = 0; Cnt < testMax; Cnt++ )
 		{
-
+			PROFILE_BEGIN (L"LOCKPool Alloc ");
 			p[Cnt] = LockPool.Alloc ();
-
+			PROFILE_END (L"LOCKPool Alloc ");
 		}
-		PROFILE_END (L"LOCKPool Alloc ");
 
-		PROFILE_BEGIN (L"LOCKPool Free ");
+
 		for ( Cnt = 0; Cnt < testMax; Cnt++ )
 		{
-
+			PROFILE_BEGIN (L"LOCKPool Free ");
 			LockPool.Free (p[Cnt]);
-
+			PROFILE_END (L"LOCKPool Free ");
 		}
-		PROFILE_END (L"LOCKPool Free ");
+
 
 		//LFPool Alloc Free
 		for ( Cnt = 0; Cnt < testMax; Cnt++ )
@@ -114,12 +135,8 @@ int main()
 		{
 			PROFILE_BEGIN (L"TLSPool Free ");
 			TLSPool.Free (p[Cnt]);
-		PROFILE_END (L"TLSPool Free ");
+			PROFILE_END (L"TLSPool Free ");
 		}
-
-
 	}
-	PROFILE_KEYPROC ();
-
-    return 0;
+	return 0;
 }

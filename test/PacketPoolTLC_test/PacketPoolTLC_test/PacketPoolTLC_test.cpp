@@ -3,19 +3,10 @@
 
 #include "stdafx.h"
 #include "RingBuffer.h"
-#include "PacketPool.h"
-#define ThreadMAX 6
-#define InqueueTime 1
-#define QueueThread 3
+#include "MemoryPool.h"
+#include"lib\Library.h"
+#define testMax 100000
 
-unsigned int WINAPI InQueueThread (LPVOID pParam);
-
-unsigned int WINAPI WorkerThread (LPVOID pParam);
-
-HANDLE Thread[ThreadMAX];
-HANDLE Event;
-
-CCrashDump Dump;
 
 struct test
 {
@@ -23,87 +14,112 @@ struct test
 };
 
 
-CRingbuffer Queue;
+CMemoryPool<test> LockPool (0);
+CMemoryPool_LF<test> LFPool (0);
+CMemoryPool_TLS<test> TLSPool (0);
 
 int main()
 {
-	Packet::Initialize ();
 	int Cnt=0;
+	test *p[testMax];
 
-	Event = CreateEvent (NULL, FALSE, FALSE, NULL);
-
-
-	for ( int Cnt = 0; Cnt < ThreadMAX- QueueThread; Cnt++ )
+	for ( int Num = 0; Num < 10; Num++ )
 	{
-		Thread[Cnt] = ( HANDLE )_beginthreadex (NULL, 0, WorkerThread,NULL, NULL, NULL);
+		for ( Cnt = 0; Cnt < testMax; Cnt++ )
+		{
+			p[Cnt] = NULL;
+		}
+
+
+		//new delete
+		PROFILE_BEGIN (L"new");
+		for ( Cnt = 0; Cnt < testMax; Cnt++ )
+		{
+
+			p[Cnt] = new test;
+
+		}
+		PROFILE_END (L"new");
+
+		PROFILE_BEGIN (L"delete");
+		for ( Cnt = 0; Cnt < testMax; Cnt++ )
+		{
+
+			delete p[Cnt];
+
+		}
+		PROFILE_END (L"delete");
+
+		//malloc free
+		PROFILE_BEGIN (L"malloc");
+		for ( Cnt = 0; Cnt < testMax; Cnt++ )
+		{
+
+			p[Cnt] = ( test * )malloc (sizeof (test));
+
+		}
+		PROFILE_END (L"malloc");
+
+		PROFILE_BEGIN (L"free");
+		for ( Cnt = 0; Cnt < testMax; Cnt++ )
+		{
+			free (p[Cnt]);
+
+		}
+		PROFILE_END (L"free");
+
+		//LockPool Alloc Free
+		PROFILE_BEGIN (L"LOCKPool Alloc ");
+		for ( Cnt = 0; Cnt < testMax; Cnt++ )
+		{
+
+			p[Cnt] = LockPool.Alloc ();
+
+		}
+		PROFILE_END (L"LOCKPool Alloc ");
+
+		PROFILE_BEGIN (L"LOCKPool Free ");
+		for ( Cnt = 0; Cnt < testMax; Cnt++ )
+		{
+
+			LockPool.Free (p[Cnt]);
+
+		}
+		PROFILE_END (L"LOCKPool Free ");
+
+		//LFPool Alloc Free
+		for ( Cnt = 0; Cnt < testMax; Cnt++ )
+		{
+			PROFILE_BEGIN (L"LFPool Alloc ");
+			p[Cnt] = LFPool.Alloc ();
+			PROFILE_END (L"LFPool Alloc ");
+		}
+
+		for ( Cnt = 0; Cnt < testMax; Cnt++ )
+		{
+			PROFILE_BEGIN (L"LFPool Free ");
+			LFPool.Free (p[Cnt]);
+			PROFILE_END (L"LFPool Free ");
+		}
+
+		//TLSPool Alloc Free
+		for ( Cnt = 0; Cnt < testMax; Cnt++ )
+		{
+			PROFILE_BEGIN (L"TLSPool Alloc ");
+			p[Cnt] = TLSPool.Alloc ();
+			PROFILE_END (L"TLSPool Alloc ");
+		}
+
+		for ( Cnt = 0; Cnt < testMax; Cnt++ )
+		{
+			PROFILE_BEGIN (L"TLSPool Free ");
+			TLSPool.Free (p[Cnt]);
+		PROFILE_END (L"TLSPool Free ");
+		}
+
+
 	}
-	for ( int Cnt = ThreadMAX - QueueThread; Cnt < ThreadMAX; Cnt++ )
-	{
-		Thread[Cnt] = ( HANDLE )_beginthreadex (NULL, 0, InQueueThread, NULL, NULL, NULL);
-	}
-
-
-	while (1)
-	{
-
-
-		wprintf (L"Full Cnt = %d \n", Packet::PacketPool->GetFullCount());
-		wprintf (L"Alloc Cnt = %d \n", Packet::PacketPool->GetAllocCount());
-		wprintf (L"Free Cnt = %d \n\n", Packet::PacketPool->GetFreeCount ());
-
-		Sleep (1000);
-
-	}
-
+	PROFILE_KEYPROC ();
 
     return 0;
-}
-
-
-
-unsigned int WINAPI InQueueThread (LPVOID pParam)
-{
-	while ( 1 )
-	{
-		
-		Packet *p = Packet::Alloc ();
-		if ( p == NULL )
-		{
-			wprintf (L"===============Alloc ERROR==============\n");
-			CCrashDump::Crash;
-		}
-
-		*p << 7799;
-
-		Queue.Lock ();
-		Queue.Put((char *)&p,sizeof(p));
-		Queue.Free ();
-		SetEvent (Event);
-
-		Sleep (InqueueTime);
-	}
-
-}
-
-
-unsigned int WINAPI WorkerThread (LPVOID pParam)
-{
-	Packet *p;
-	int a;
-	while ( 1 )
-	{
-		WaitForSingleObject (Event, INFINITE);
-
-		Queue.Lock ();
-		Queue.Get (( char * )&p, 8);
-		Queue.Free ();
-		*p >> a;
-
-		if ( a != 7799 )
-		{
-			wprintf (L"===============FREE ERROR==============\n");
-			CCrashDump::Crash;
-		}
-		Packet::Free (p);
-	}
 }

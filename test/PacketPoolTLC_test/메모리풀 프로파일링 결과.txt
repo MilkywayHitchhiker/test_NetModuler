@@ -1,0 +1,41 @@
+
+*단일 스레드에서 10만번씩 Alloc과 Free를 10번 반복 했을 경우 10만번을 1번으로 쳤을경우 걸리는 시간.
+
+ThreadID      l Name              l Average        l MinTime        l MaxTime        l TotalCaLL l
+ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
+ 6464         l new               l 2873.3008  μs  l 3422.0316  μs  l 3580.9441  μs  l       10  l
+ 6464         l delete            l 1629.2183  μs  l 2199.6057  μs  l 2635.9565  μs  l       10  l
+
+ 6464         l malloc            l 2436.6574  μs  l 3312.5781  μs  l 3768.8295  μs  l       10  l
+ 6464         l free              l 1821.7863  μs  l 2089.8596  μs  l 2338.0322  μs  l       10  l
+
+ 6464         l LOCKPool Alloc    l 3607.5758  μs  l 3067.9174  μs  l 4181.1824  μs  l       10  l
+ 6464         l LOCKPool Free     l 1531.7638  μs  l 2484.3604  μs  l 2686.2934  μs  l       10  l
+
+ 6464         l LFPool Alloc      l 4002.9547  μs  l 3517.4376  μs  l 4288.5873  μs  l       10  l
+ 6464         l LFPool Free       l 1800.7150  μs  l 2492.2622  μs  l 2674.2945  μs  l       10  l
+
+ 6464         l TLSPool Alloc     l 1331.5868  μs  l 2441.0473  μs  l 2942.6604  μs  l       10  l
+ 6464         l TLSPool Free      l 785.1972   μs  l 1249.6430  μs  l 1383.6796  μs  l       10  l
+
+
+
+
+*단일 스레드에서 10만번씩 Alloc과 Free를 10번 반복 했을 경우 걸리는 시간.
+
+ThreadID      l Name              l Average        l MinTime        l MaxTime        l TotalCaLL l
+ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
+ 11348        l new               l 0.0000      μs l 0.0000      μs l 65.2624     μs l  1000000  l
+ 11348        l delete            l 0.0000      μs l 0.0000      μs l 89.5529     μs l  1000000  l
+
+ 11348        l malloc            l 0.2927      μs l 0.0000      μs l 70.5302     μs l  1000000  l
+ 11348        l free              l 0.0000      μs l 0.2927      μs l 94.5280     μs l  1000000  l
+
+ 11348        l LOCKPool Alloc    l 0.2927      μs l 0.2927      μs l 67.3110     μs l  1000000  l
+ 11348        l LOCKPool Free     l 0.2927      μs l 0.2927      μs l 55.0194     μs l  1000000  l
+
+ 11348        l LFPool Alloc      l 0.5853      μs l 0.2927      μs l 69.3596     μs l  1000000  l
+ 11348        l LFPool Free       l 0.2927      μs l 0.5853      μs l 70.8229     μs l  1000000  l
+
+ 11348        l TLSPool Alloc     l 0.5853      μs l 0.5853      μs l 134.6220    μs l  1000000  l
+ 11348        l TLSPool Free      l 0.5853      μs l 0.5853      μs l 116.7699    μs l  1000000  l

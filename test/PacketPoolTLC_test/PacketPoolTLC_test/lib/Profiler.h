@@ -81,11 +81,11 @@ void PROFILE_KeyProc (void);
 #ifdef PROFILE_CHECK
 #define PROFILE_BEGIN(X)	Profile_Begin(X)
 #define PROFILE_END(X)		Profile_End(X)
-#define PROFILE_KEYPROC		PROFILE_KeyProc()
+#define PROFILE_KEYPROC()		PROFILE_KeyProc()
 
 #else
 #define PROFILE_BEGIN(X)
 #define PROFILE_END(X)
-#define PROFILE_KEYPROC
+#define PROFILE_KEYPROC()
 
 #endif

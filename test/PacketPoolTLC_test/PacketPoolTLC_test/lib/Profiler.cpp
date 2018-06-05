@@ -179,7 +179,7 @@ void ProfileStructher::Print_Profile (void)
 				MinTime = ( double )Thread[TCnt].profile_Array[cnt].Min_Time[1] / MicroSecond;
 				MaxTime = ( double )Thread[TCnt].profile_Array[cnt].Max_Time[1] / MicroSecond;
 
-				fwprintf_s (fp, L" %-12d l %-17ls l %-11.4fµs l %-11.4fµs l %-11.4fµs l %8lld  l\n", Thread[TCnt].ThreadID,Thread[TCnt].profile_Array[cnt].Name, Average, MinTime, MaxTime, Thread[TCnt].profile_Array[cnt].CallCNT);
+				fwprintf_s (fp, L" %-12d l %-17ls l %-12.4fµs l %-12.4fµs l %-12.4fµs l %8lld  l\n", Thread[TCnt].ThreadID,Thread[TCnt].profile_Array[cnt].Name, Average, MinTime, MaxTime, Thread[TCnt].profile_Array[cnt].CallCNT);
 			}
 		}
 	}
@@ -246,5 +246,7 @@ void PROFILE_KeyProc (void)
 	{
 		Profile.ClearProfile ();
 	}
+
+	Profile.Print_Profile ();
 	return;
 }

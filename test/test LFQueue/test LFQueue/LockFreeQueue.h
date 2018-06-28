@@ -18,6 +18,7 @@ template<class DATA>
 class CQueue_LF
 {
 private :
+	SRWLOCK _CS;
 	struct NODE
 	{
 		DATA Data;
@@ -61,6 +62,7 @@ public :
 		
 		_pHead = HNode;
 		_pTail = TNode;
+		InitializeSRWLock (&_CS);
 
 
 	}
@@ -100,31 +102,29 @@ public :
 		pNode->Data = Data;
 
 
-		INT64 Uniqueue = InterlockedIncrement64 (&_UniqueueNum);
+		INT64 Uniqueue;
 
 
 		while ( 1 )
 		{
 			PreNode.pNode = _pTail->pNode;
 			PreNode.UNIQUEUE = _pTail->UNIQUEUE;
-
+			Uniqueue = InterlockedIncrement64 (&_UniqueueNum);
 			//Tail의 next가 NULL이 아닐 경우 이미 누군가가 먼저 노드를 넣었으므로 Tail을 밀어줌.
 
 			if ( PreNode.pNode->pNext != NULL )
 			{
-				//InterlockedCompareExchangePointer (( volatile PVOID * )&_pTail->pNode, _pTail->pNode->pNext, PreNode.pNode);
 				InterlockedCompareExchange128 (( volatile LONG64 * )_pTail, Uniqueue, ( LONG64 )_pTail->pNode->pNext, ( LONG64 * )&PreNode);
 				continue;
 			}
 
 			//Tail의 Next가 NULL일 경우 현재 노드 연결
+
 			pNode->pNext = NULL;
 			if ( InterlockedCompareExchangePointer (( volatile PVOID * )&_pTail->pNode->pNext, pNode, NULL) == NULL )
 			{
 
-
 				InterlockedCompareExchange128 (( volatile LONG64 * )_pTail, Uniqueue, ( LONG64 )_pTail->pNode->pNext, ( LONG64 * )&PreNode);
-	//			InterlockedCompareExchangePointer (( volatile PVOID * )&_pTail->pNode, _pTail->pNode->pNext, PreNode.pNode);
 				InterlockedIncrement64 (&_NodeCnt);
 				return true;
 			}
@@ -143,6 +143,8 @@ public :
 
 		INT64 Uniqueue = InterlockedIncrement64 (&_UniqueueNum);
 
+
+		AcquireSRWLockExclusive (&_CS);
 		while ( 1 )
 		{
 			PreNode.pNode = _pHead->pNode;
@@ -152,6 +154,8 @@ public :
 			if ( PreNode.pNode->pNext == NULL )
 			{
 				pOut = NULL;
+
+				ReleaseSRWLockExclusive (&_CS);
 				return false;
 			}
 
@@ -160,6 +164,9 @@ public :
 				*pOut = PreNode.pNode->pNext->Data;
 				_pMemPool->Free (PreNode.pNode);
 				InterlockedDecrement64 (&_NodeCnt);
+				ReleaseSRWLockExclusive (&_CS);
+
+
 				return true;
 			}
 		}

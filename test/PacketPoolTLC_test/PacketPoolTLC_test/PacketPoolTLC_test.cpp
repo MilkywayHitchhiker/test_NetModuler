@@ -15,8 +15,8 @@ struct test
 
 
 CMemoryPool<test> LockPool (0);
-CMemoryPool_LF<test> LFPool (0);
-CMemoryPool_TLS<test> TLSPool (0);
+//CMemoryPool_LF<test> LFPool (0);
+//CMemoryPool_TLS<test> TLSPool (0);
 
 unsigned int WINAPI WorkerThread (LPVOID lpParam);
 
@@ -27,6 +27,28 @@ int main()
 	for ( int Cnt = 0; Cnt < ThreadMAX; Cnt++ )
 	{
 		Thread[Cnt] = ( HANDLE )_beginthreadex (NULL, 0, WorkerThread, NULL, NULL, NULL);
+	}
+	int MemPoolFull=0;
+	int MemPoolAlloc=0;
+
+	DWORD StartTime = GetTickCount ();
+	DWORD EndTime;
+	while ( 1 )
+	{
+		EndTime = GetTickCount ();
+		if ( EndTime - StartTime > 1000 )
+		{
+			wprintf (L"================================\n");
+			wprintf (L"MemPoolFull = %d\n", MemPoolFull);
+			wprintf (L"MemPoolAlloc = %d\n", MemPoolAlloc);
+			wprintf (L"================================\n\n");
+
+			MemPoolFull = LockPool.GetFullCount ();
+			MemPoolAlloc = LockPool.GetAllocCount ();
+
+			StartTime = EndTime;
+		}
+		Sleep (50);
 	}
 
 	WaitForMultipleObjects (ThreadMAX, Thread, TRUE, INFINITE);
@@ -43,7 +65,7 @@ unsigned int WINAPI WorkerThread (LPVOID lpParam)
 
 	test *p[100000];
 
-	for ( int Num = 0; Num < 10; Num++ )
+	while(1)
 	{
 		for ( Cnt = 0; Cnt < testMax; Cnt++ )
 		{
@@ -52,7 +74,7 @@ unsigned int WINAPI WorkerThread (LPVOID lpParam)
 
 
 		//new delete
-
+		/*
 		for ( Cnt = 0; Cnt < testMax; Cnt++ )
 		{
 			PROFILE_BEGIN (L"new");
@@ -89,7 +111,7 @@ unsigned int WINAPI WorkerThread (LPVOID lpParam)
 			PROFILE_END (L"free");
 		}
 
-
+		*/
 		//LockPool Alloc Free
 
 		for ( Cnt = 0; Cnt < testMax; Cnt++ )
@@ -99,15 +121,16 @@ unsigned int WINAPI WorkerThread (LPVOID lpParam)
 			PROFILE_END (L"LOCKPool Alloc ");
 		}
 
-
+		Sleep (1);
 		for ( Cnt = 0; Cnt < testMax; Cnt++ )
 		{
 			PROFILE_BEGIN (L"LOCKPool Free ");
 			LockPool.Free (p[Cnt]);
 			PROFILE_END (L"LOCKPool Free ");
 		}
+		Sleep (2);
 
-
+		/*
 		//LFPool Alloc Free
 		for ( Cnt = 0; Cnt < testMax; Cnt++ )
 		{
@@ -137,6 +160,7 @@ unsigned int WINAPI WorkerThread (LPVOID lpParam)
 			TLSPool.Free (p[Cnt]);
 			PROFILE_END (L"TLSPool Free ");
 		}
+		*/
 	}
 	return 0;
 }

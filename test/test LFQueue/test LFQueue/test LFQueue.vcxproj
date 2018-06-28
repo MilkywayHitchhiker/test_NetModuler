@@ -152,6 +152,7 @@
     <ClInclude Include="lib\System_Log.h" />
     <ClInclude Include="LockFreeQueue.h" />
     <ClInclude Include="MemoryPool.h" />
+    <ClInclude Include="PacketPool.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
   </ItemGroup>
@@ -159,6 +160,7 @@
     <ClCompile Include="lib\APIHook.cpp" />
     <ClCompile Include="lib\Profiler.cpp" />
     <ClCompile Include="lib\System_Log.cpp" />
+    <ClCompile Include="PacketPool.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>

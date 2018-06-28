@@ -45,6 +45,9 @@
     <ClInclude Include="MemoryPool.h">
       <Filter>소스 파일</Filter>
     </ClInclude>
+    <ClInclude Include="PacketPool.h">
+      <Filter>소스 파일</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -61,6 +64,9 @@
     </ClCompile>
     <ClCompile Include="lib\System_Log.cpp">
       <Filter>소스 파일\lib</Filter>
+    </ClCompile>
+    <ClCompile Include="PacketPool.cpp">
+      <Filter>소스 파일</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

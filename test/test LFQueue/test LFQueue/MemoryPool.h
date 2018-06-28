@@ -145,7 +145,9 @@ public:
 			}
 
 			else
+			{
 				return nullptr;
+			}
 		}
 
 		else

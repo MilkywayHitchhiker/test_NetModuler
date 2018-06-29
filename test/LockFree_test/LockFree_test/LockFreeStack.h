@@ -89,16 +89,16 @@ public:
 		st_NODE *pNode = _pMemoryPool->Alloc();
 		st_TOP_NODE pPreTopNode;
 		__int64 iUniqueNum = InterlockedIncrement64(&_iUniqueNum);
+		pNode->Data = Data;
 
 		do {
 			pPreTopNode.iUniqueNum = _pTop->iUniqueNum;
 			pPreTopNode.pTopNode = _pTop->pTopNode;
 
-			pNode->Data = Data;
+
 			pNode->pNext = _pTop->pTopNode;
 		} while (!InterlockedCompareExchange128((volatile LONG64 *)_pTop, iUniqueNum, (LONG64)pNode, (LONG64 *)&pPreTopNode));
-		_lUseSize += sizeof(pNode);
-
+		InterlockedIncrement ((volatile LONG * )&_lUseSize);
 		return true;
 	}
 
@@ -118,10 +118,15 @@ public:
 		{
 			pPreTopNode.pTopNode = _pTop->pTopNode;
 			pPreTopNode.iUniqueNum = _pTop->iUniqueNum;
+			if ( pPreTopNode.pTopNode == NULL )
+			{
+				*pOutData = NULL;
+				return false;
+			}
 
 			pNode = _pTop->pTopNode;
-		} while (!InterlockedCompareExchange128((volatile LONG64 *)_pTop, iUniqueNum, (LONG64)_pTop->pTopNode->pNext, (LONG64 *)&pPreTopNode));
-		_lUseSize -= sizeof (pNode);
+		} while (!InterlockedCompareExchange128((volatile LONG64 *)_pTop, iUniqueNum, (LONG64)pPreTopNode.pTopNode->pNext, (LONG64 *)&pPreTopNode));
+		InterlockedDecrement (( LONG * )&_lUseSize);
 
 		*pOutData = pPreTopNode.pTopNode->Data;
 		_pMemoryPool->Free(pNode);

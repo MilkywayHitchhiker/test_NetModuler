@@ -101,7 +101,6 @@ public :
 		NODE *pNode = _pMemPool->Alloc ();
 		pNode->Data = Data;
 
-
 		INT64 Uniqueue;
 
 
@@ -123,7 +122,6 @@ public :
 			pNode->pNext = NULL;
 			if ( InterlockedCompareExchangePointer (( volatile PVOID * )&_pTail->pNode->pNext, pNode, NULL) == NULL )
 			{
-
 				InterlockedCompareExchange128 (( volatile LONG64 * )_pTail, Uniqueue, ( LONG64 )_pTail->pNode->pNext, ( LONG64 * )&PreNode);
 				InterlockedIncrement64 (&_NodeCnt);
 				return true;
@@ -141,32 +139,30 @@ public :
 	{
 		_TOP_NODE PreNode;
 
+		NODE *pNext;
+
 		INT64 Uniqueue = InterlockedIncrement64 (&_UniqueueNum);
 
 
-		AcquireSRWLockExclusive (&_CS);
 		while ( 1 )
 		{
 			PreNode.pNode = _pHead->pNode;
 			PreNode.UNIQUEUE = _pHead->UNIQUEUE;
 
+			pNext = _pHead->pNode->pNext;
 			//헤드의 Next노드를 뽑는 것이므로 pNode가 NULL이라면 Dequeue 불가능.
-			if ( PreNode.pNode->pNext == NULL )
+			if ( pNext == NULL )
 			{
 				pOut = NULL;
-
-				ReleaseSRWLockExclusive (&_CS);
 				return false;
 			}
-
-			if ( InterlockedCompareExchange128 (( volatile LONG64 * )_pHead, Uniqueue, ( LONG64 )PreNode.pNode->pNext, ( LONG64 * )&PreNode) )
+			
+			*pOut = pNext->Data;
+			if ( InterlockedCompareExchange128 (( volatile LONG64 * )_pHead, Uniqueue, ( LONG64 )pNext, ( LONG64 * )&PreNode) )
 			{
-				*pOut = PreNode.pNode->pNext->Data;
 				_pMemPool->Free (PreNode.pNode);
 				InterlockedDecrement64 (&_NodeCnt);
-				ReleaseSRWLockExclusive (&_CS);
-
-
+				
 				return true;
 			}
 		}

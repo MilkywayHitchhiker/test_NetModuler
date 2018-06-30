@@ -14,7 +14,7 @@ static unsigned int WINAPI EnQThread (LPVOID pParam);
 
 static unsigned int WINAPI DeQThread (LPVOID pParam);
 
-HANDLE Thread[50];
+HANDLE Thread[100];
 
 
 CQueue_LF<Packet *> UpdateQueue;
@@ -23,8 +23,8 @@ bool flag;
 
 LONG64 EnqSpeed;
 LONG64 DeqSpeed;
-int EnQ_Max = 40;
-int DeQ_Max = 10;
+int EnQ_Max = 75;
+int DeQ_Max = 25;
 int main()
 {
 	LOG_DIRECTORY (L"Log");

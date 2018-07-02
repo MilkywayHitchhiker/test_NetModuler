@@ -6,32 +6,22 @@
 
 Hitchhiker::CDBConnector::CDBConnector (WCHAR * szDBIP, WCHAR * szUser, WCHAR * szPassword, WCHAR * szDBName, int iDBPort, int ReConnect)
 {
-	
-	WCHAR		szDBIPbuf[16];
-	WCHAR		szDBUserbuf[64];
-	WCHAR		szDBPasswordbuf[64];
-	WCHAR		szDBNamebuf[64];
-	
-	StringCchCopy (szDBIPbuf,sizeof(szDBIPbuf),szDBIP);
-	StringCchCopy (szDBUserbuf, sizeof (szDBUserbuf), szUser);
-	StringCchCopy (szDBPasswordbuf, sizeof (szDBPasswordbuf), szPassword);
-	StringCchCopy (szDBNamebuf, sizeof (szDBNamebuf), szDBName);
-	WideCharToMultiByte (CP_UTF8, 0, szDBIPbuf, lstrlenW (szDBIPbuf), _szDBIP, 16, NULL, NULL);
-	WideCharToMultiByte (CP_UTF8, 0, szDBUserbuf, lstrlenW (szDBUserbuf), _szDBUser, 64, NULL, NULL);
-	WideCharToMultiByte (CP_UTF8, 0, szDBPasswordbuf, lstrlenW (szDBPasswordbuf), _szDBPassword, 64, NULL, NULL);
-	WideCharToMultiByte (CP_UTF8, 0, szDBNamebuf, lstrlenW (szDBNamebuf), _szDBName, 64, NULL, NULL);
+	WideCharToMultiByte (CP_UTF8, 0, szDBIP, lstrlenW (szUser), _szDBIP, 16, NULL, NULL);
+	WideCharToMultiByte (CP_UTF8, 0, szUser, lstrlenW (szUser), _szDBUser, 64, NULL, NULL);
+	WideCharToMultiByte (CP_UTF8, 0, szPassword, lstrlenW (szPassword), _szDBPassword, 64, NULL, NULL);
+	WideCharToMultiByte (CP_UTF8, 0, szDBName, lstrlenW (szDBName), _szDBName, 64, NULL, NULL);
 
 	_iDBPort = iDBPort;
 	_iReconnect = ReConnect;
 	_iLastError = NULL;
 	_ReTry = 0;
-	
 	_wsetlocale (LC_ALL, L"korean");
 	return;
 }
 
 Hitchhiker::CDBConnector::~CDBConnector ()
 {
+	Disconnect ();
 }
 
 bool Hitchhiker::CDBConnector::Connect (void)
@@ -58,7 +48,6 @@ bool Hitchhiker::CDBConnector::Connect (void)
 
 	//한글사용을위해추가.
 	mysql_set_character_set (_pMySQL, "utf8");
-
 	return true;
 }
 

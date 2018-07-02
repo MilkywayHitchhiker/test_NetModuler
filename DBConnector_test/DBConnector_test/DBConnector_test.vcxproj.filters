@@ -16,6 +16,9 @@
     <Filter Include="소스 파일\DB">
       <UniqueIdentifier>{df663700-f047-4859-9ee6-37ceb18b4603}</UniqueIdentifier>
     </Filter>
+    <Filter Include="소스 파일\lib">
+      <UniqueIdentifier>{f60102cb-3996-4ec9-b8c4-4bac2548cd76}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
@@ -30,6 +33,18 @@
     <ClInclude Include="DBConnector.h">
       <Filter>소스 파일\DB</Filter>
     </ClInclude>
+    <ClInclude Include="lib\CrashDump.h">
+      <Filter>소스 파일\lib</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\Library.h">
+      <Filter>소스 파일\lib</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\Profiler.h">
+      <Filter>소스 파일\lib</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\System_Log.h">
+      <Filter>소스 파일\lib</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -40,6 +55,15 @@
     </ClCompile>
     <ClCompile Include="DBConnector.cpp">
       <Filter>소스 파일\DB</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\APIHook.cpp">
+      <Filter>소스 파일\lib</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\Profiler.cpp">
+      <Filter>소스 파일\lib</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\System_Log.cpp">
+      <Filter>소스 파일\lib</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

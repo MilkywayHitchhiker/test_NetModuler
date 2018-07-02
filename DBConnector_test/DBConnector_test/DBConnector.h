@@ -2,7 +2,7 @@
 #include<Windows.h>
 #include"MySQL\include\mysql.h"
 #include"MySQL\include\errmsg.h"
-#pragma comment(lib,"../MySQL/lib/vs14/mysqlclient.lib")
+#pragma comment(lib,"MySQL/lib/vs14/mysqlclient.lib")
 
 
 #ifndef __LIB_DBCONNECTOR__
@@ -32,7 +32,7 @@ namespace Hitchhiker
 
 		};
 
-		CDBConnector (WCHAR *szDBIP, WCHAR *szUser, WCHAR *szPassword, WCHAR *szDBName, int iDBPort);
+		CDBConnector (WCHAR *szDBIP, WCHAR *szUser, WCHAR *szPassword, WCHAR *szDBName, int iDBPort, int ReConnect);
 		virtual		~CDBConnector ();
 
 		//////////////////////////////////////////////////////////////////////
@@ -108,12 +108,13 @@ namespace Hitchhiker
 		//-------------------------------------------------------------
 		MYSQL_RES	*_pSqlResult;
 
-		WCHAR		_szDBIP[16];
-		WCHAR		_szDBUser[64];
-		WCHAR		_szDBPassword[64];
-		WCHAR		_szDBName[64];
+		char		_szDBIP[16];
+		char		_szDBUser[64];
+		char		_szDBPassword[64];
+		char		_szDBName[64];
 		int			_iDBPort;
-
+		int			_iReconnect;
+		int			_ReTry;
 
 		WCHAR		_szQuery[eQUERY_MAX_LEN];
 		char		_szQueryUTF8[eQUERY_MAX_LEN];

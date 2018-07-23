@@ -521,8 +521,6 @@ private:
 		////////////////////////////////////////////////////
 		Chunk ()
 		{
-			_Top = 0;
-			FreeCnt = 0;
 		}
 		~Chunk ()
 		{
@@ -531,6 +529,8 @@ private:
 
 		bool ChunkSetting (int iBlockNum, CMemoryPool_TLS<DATA> *pManager)
 		{
+			_Top = 0;
+			FreeCnt = 0;
 			if ( iBlockNum < 0 )
 			{
 				CCrashDump::Crash ();
@@ -595,7 +595,7 @@ private:
 
 			if ( Cnt == FullCnt )
 			{
-				delete(this);
+				delete this;
 			}
 
 			return true;
@@ -603,17 +603,9 @@ private:
 		}
 	};
 
-	struct st_Chunk_NODE
-	{
-		Chunk<DATA> *pChunk;
-		DWORD ThreadID;
-		st_Chunk_NODE *pNextNode;
-	};
 
-	st_Chunk_NODE *_pTopNode;
 	int Chunk_in_BlockCnt;
 	DWORD TlsNum;
-	SRWLOCK _CS;
 public:
 	/*========================================================================
 	// 생성자
@@ -625,10 +617,7 @@ public:
 			iBlockNum = TLS_basicChunkSize;
 		}
 
-
-		_pTopNode = NULL;
 		Chunk_in_BlockCnt = iBlockNum;
-		InitializeSRWLock (&_CS);
 		TlsNum = TlsAlloc ();
 
 		//TLS가 생성이 불가한 상태이므로 자기자신을 파괴하고 종료.
@@ -640,22 +629,6 @@ public:
 	}
 	~CMemoryPool_TLS ()
 	{
-		st_Chunk_NODE *pPreTopNode = _pTopNode;
-		st_Chunk_NODE *pdeleteTopNode = _pTopNode;
-		while ( 1 )
-		{
-			pPreTopNode = pPreTopNode->pNextNode;
-
-			free (pdeleteTopNode->pChunk);
-
-			free (pdeleteTopNode);
-
-			pdeleteTopNode = pPreTopNode;
-			if ( pdeleteTopNode == NULL )
-			{
-				break;
-			}
-		}
 		return;
 	}
 
@@ -668,38 +641,24 @@ public:
 	DATA *Alloc (bool bPlacemenenew = true)
 	{
 		//해당 스레드에서 최초 실행될때. 초기화 작업.
-		st_Chunk_NODE *pChunkNode = ( st_Chunk_NODE  * )TlsGetValue (TlsNum);
+		Chunk *pChunk = ( Chunk  * )TlsGetValue (TlsNum);
 
-
-
-		if ( pChunkNode == NULL )
+		if ( pChunk == NULL )
 		{
 
+			pChunk = (Chunk<DATA> *)malloc (sizeof (Chunk<DATA>));
+			pChunk->ChunkSetting (Chunk_in_BlockCnt, this);
 
-			pChunkNode = ( st_Chunk_NODE  * )malloc (sizeof (st_Chunk_NODE));
-			pChunkNode->pChunk = new Chunk<DATA>;
-			pChunkNode->ThreadID = GetCurrentThreadId ();
-			pChunkNode->pChunk->ChunkSetting (Chunk_in_BlockCnt, this);
-
-
-		//	AcquireSRWLockExclusive (&_CS);
-			TlsSetValue (TlsNum, pChunkNode);
-
-			pChunkNode->pNextNode = _pTopNode;
-			_pTopNode = pChunkNode;
-
-		//	ReleaseSRWLockExclusive (&_CS);
-
+			TlsSetValue (TlsNum, pChunk);
 
 			InterlockedAdd (( volatile long * )&m_iBlockCount, Chunk_in_BlockCnt);
 
 		}
 
 
-		DATA *pData = pChunkNode->pChunk->Alloc ();
+		DATA *pData = pChunk->Alloc ();
 
-
-		//InterlockedIncrement (( volatile long * )&m_iAllocCount);
+		InterlockedIncrement (( volatile long * )&m_iAllocCount);
 
 		return pData;
 
@@ -716,8 +675,8 @@ public:
 		Chunk<DATA>::st_BLOCK_NODE *pNode = (Chunk<DATA>::st_BLOCK_NODE *) pDATA;
 
 		bool chk = pNode->pChunk_Main->Free (pDATA);
-	//		InterlockedDecrement (( volatile long * )&m_iAllocCount);
-	//		InterlockedIncrement (( volatile long * )&m_iFreeCount);
+			InterlockedDecrement (( volatile long * )&m_iAllocCount);
+			InterlockedIncrement (( volatile long * )&m_iFreeCount);
 		return chk;
 	}
 public:
@@ -731,25 +690,8 @@ public:
 	========================================================================*/
 	void Chunk_Alloc ()
 	{
-		st_Chunk_NODE *pPreTopNode = _pTopNode;
-		DWORD ThreadID = GetCurrentThreadId ();
+		TlsSetValue (TlsNum, NULL);
 
-		while ( 1 )
-		{
-			if ( pPreTopNode->ThreadID == ThreadID )
-			{
-				pPreTopNode->pChunk = new Chunk<DATA>;
-				pPreTopNode->pChunk->ChunkSetting (Chunk_in_BlockCnt, this);
-				break;
-			}
-			//청크 블록을 교체하는데 해당 스레드가 존재하지 않는 스레드라면 문제가 되므로 크래쉬를 유도시켜 덤프 남길것.
-			else if ( pPreTopNode == NULL )
-			{
-				CCrashDump::Crash ();
-				return;
-			}
-			pPreTopNode = pPreTopNode->pNextNode;
-		}
 		return;
 	}
 
@@ -765,8 +707,8 @@ public:
 	========================================================================*/
 	int		GetAllocCount (void)
 	{
-	//	return m_iAllocCount;
-		return 0;
+		return m_iAllocCount;
+		//return 0;
 	}
 
 	/*========================================================================
@@ -791,8 +733,8 @@ public:
 	========================================================================*/
 	int		GetFreeCount (void)
 	{
-	//	return m_iFreeCount;
-		return 0;
+		return m_iFreeCount;
+	//	return 0;
 	}
 
 private:
